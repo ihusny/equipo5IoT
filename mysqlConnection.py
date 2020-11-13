@@ -17,6 +17,21 @@ try:
 
     cursor = cnx.cursor()
 
+    # reset = int(input("¿Desea resetear los datos (S/N)? "))
+    #
+    # if(reset.at(0)=='S'):
+    #     query = "DELETE FROM Sensor_oxi";
+    #     cursor.execute(query)
+    #     cnx.commit()
+    #     query = "DELETE FROM Sensor_cardio";
+    #     cursor.execute(query)
+    #     cnx.commit()
+    #     query = "DELETE FROM Perfiles";
+    #     cursor.execute(query)
+    #     cnx.commit()
+    #     query = "ALTER TABLE tablename AUTO_INCREMENT = 1";
+    #     cursor.execute(query)
+    #     cnx.commit()
 
     limit = int(input("¿Cuantos usuarios quieres agregar? "))
 
@@ -24,28 +39,31 @@ try:
         for i in range(limit):
             crearPerfil(cnx, cursor)
 
-# for i in range(5, 7):
-#     for j in range(1000):
-#         query = f"INSERT INTO Sensor_cardio(id_perfil, medicion_cardio, fecha) values("+ str(i)+ ", "+str(random.randint(50, 120))+", '2020-11-10');"
-#         cursor.execute(query)
-#         cnx.commit()
-#         query = f"INSERT INTO Sensor_oxi(id_perfil, medicion_oxi, fecha) values("+str(i)+", "+str(random.randint(70, 100))+", '2020-11-10');"
-#         cursor.execute(query)
-#         cnx.commit()
+    system('clear')
+    for i in range(10, 15):
 
-
-    for i in range(5, 7):
         for j in range(1000):
 
-            query_data = (i, str(random.randint(50, 120)), '2020-11-10')
-            query = f"INSERT INTO Sensor_cardio(id_perfil, medicion_cardio, fecha) values(%s, %s, %s);"
-            cursor.execute(query, query_data)
+            query = f"INSERT INTO Sensor_cardio(id_perfil, medicion_cardio, fecha) values("+ str(i)+ ", "+str(random.randint(50, 120))+", '2020-11-10');"
+            cursor.execute(query)
+            cnx.commit()
+            query = f"INSERT INTO Sensor_oxi(id_perfil, medicion_oxi, fecha) values("+str(i)+", "+str(random.randint(70, 100))+", '2020-11-10');"
+            cursor.execute(query)
             cnx.commit()
 
-            query_data = (i, str(random.randint(70, 100)), '2020-11-10')
-            query = f"INSERT INTO Sensor_oxi(id_perfil, medicion_oxi, fecha) values(%s, %s, %s);"
-            cursor.execute(query, query_data)
-            cnx.commit()
+
+    # for i in range(6, 9):
+    #     for j in range(1000):
+    #
+    #         query_data = (i, str(random.randint(50, 120)), '2020-11-10')
+    #         query = f"INSERT INTO Sensor_cardio(id_perfil, medicion_cardio, fecha) values(%s, %s, %s);"
+    #         cursor.execute(query, query_data)
+    #         cnx.commit()
+    #
+    #         query_data = (i, str(random.randint(70, 100)), '2020-11-10')
+    #         query = f"INSERT INTO Sensor_oxi(id_perfil, medicion_oxi, fecha) values(%s, %s, %s);"
+    #         cursor.execute(query, query_data)
+    #         cnx.commit()
 
 
     # last_id = [result[0] for result in cursor][-1]
