@@ -1,4 +1,10 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from scipy.signal import find_peaks
 import serial
+
+
 
 ser = serial.Serial("/dev/cu.usbmodem14201", 9600)
 hrValues = []
@@ -50,4 +56,34 @@ while(leer):
         leer = False
     # print(hr)
     print(count/10, str("%"))
-print(Values)
+# print(Values)
+
+# HR 35-36 sin dedo, 720-750 con dedo
+# RED 200k +-500 sin dedo, 233k +-500 con dedo
+# IR 2200+-100 sin dedo,  220500 +- 100 con dedo
+# milis - tiempo en milisegundos
+
+
+
+
+def smooth_curve_simple(points, sample_size):
+    smoothed_points = [sum(points[i:i+sample_size]) /
+    sample_size for i in range(0, len(points), sample_size)]
+    return smoothed_points
+
+
+def analisisHR2(hrValues, miliValues, sample_size):
+    smoothed_values = smooth_curve_simple(hrValues, sample_size)
+    peaks = find_peaks(smoothed_values)[0]
+    valorHR = (60000*len(peaks))/(miliValues[-1]-miliValues[0])
+    return valorHR
+
+
+
+
+
+
+print(analisisHR2(Values,miliValues,20))
+
+
+
