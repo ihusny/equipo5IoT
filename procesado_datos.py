@@ -84,6 +84,3 @@ def analisisHR2(hrValues, miliValues, sample_size):
 
 
 print(analisisHR2(Values,miliValues,20))
-
-
-

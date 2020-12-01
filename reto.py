@@ -1,5 +1,7 @@
 # import serial
-
+import mysql.connector
+import random
+from os import system, name
 import matplotlib.pyplot as plt
 import random
 from scipy.signal import find_peaks as fp
@@ -12,6 +14,61 @@ SAMPLE_FREQ = 25
 MA_SIZE = 4
 # sampling frequency * 4 (in algorithm.h)
 BUFFER_SIZE = 100
+
+#Introducir datos a la base de datos con un query
+def introducirDatos(cnx, cursor):
+    #Pedir al usuario que introduzca algunos datos
+    id_perfil = int(input("Introduzca su id: "))
+    dia = input("Introduzca el día: ")
+    mes = input("Introduzca su mes: ")
+    year = input("Introduzca su año: ")
+    fecha = str(year)+"-"+str(mes)+"-"+str(dia)
+    i = 0
+
+
+    #Comenzar mediciones
+    while(i<10):
+        try:
+            lineBytes = ser.readline();
+            # lineBytes=s.recv(1024);
+            line = lineBytes.decode("ascii")
+            line = line.rstrip();  # HR:118;ML:1704
+            medidas = line.split(";")  # ["HR:118", "ML:1704"]
+            hr = int(medidas[0].split(":")[1])  # ["HR", "118"], toma el 118, lo convierte a int y lo guarda
+            milis = int(medidas[1].split(":")[1])  # ["ML", "1704"]
+            red = int(medidas[2].split(":")[1])
+            ir = int(medidas[3].split(":")[1])
+            hrValues.append(hr)
+            miliValues.append(milis)
+            redValues.append(red)
+            irValues.append(ir)
+            #print(line)
+        except:
+            continue
+        if (len(hrValues) == 100):
+            #print("SPO2:", calc_hr_and_spo2(redValues, irValues))
+            (_, _, SPO2, SPO2_Valid) = calc_hr_and_spo2(redValues, irValues)
+            # print(irValues)
+            # print(redValues)
+            #print("HR:", analisisHR2(hrValues, miliValues, 3))
+            HR = analisisHR2(hrValues, miliValues, 3)
+            hrValues = hrValues[25:]
+            miliValues = miliValues[25:]
+            redValues = redValues[25:]
+            irValues = irValues[25:]
+
+        if(SPO2_Valid):
+            i+=1
+
+            query_data = (id_perfil, HR, fecha)
+            query = f"INSERT INTO Sensor_cardio(id_perfil, medicion_cardio, fecha) values (%s, %s, %s);"
+            cursor.execute(query, query_data)
+            cnx.commit()
+
+            query_data = (id_perfil, SPO2, fecha)
+            query = f"INSERT INTO Sensor_oxi(id_perfil, medicion_oxi, fecha) values (%s, %s, %s);"
+            cursor.execute(query, query_data)
+            cnx.commit()
 
 
 # this assumes ir_data and red_data as np.array
@@ -315,32 +372,55 @@ s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind(("0.0.0.0", 1337))
 '''
 
-while (1):
-    try:
-        lineBytes = ser.readline();
-        # lineBytes=s.recv(1024);
-        line = lineBytes.decode("ascii")
-        line = line.rstrip();  # HR:118;ML:1704
-        medidas = line.split(";")  # ["HR:118", "ML:1704"]
-        hr = int(medidas[0].split(":")[1])  # ["HR", "118"], toma el 118, lo convierte a int y lo guarda
-        milis = int(medidas[1].split(":")[1])  # ["ML", "1704"]
-        red = int(medidas[2].split(":")[1])
-        ir = int(medidas[3].split(":")[1])
-        hrValues.append(hr)
-        miliValues.append(milis)
-        redValues.append(red)
-        irValues.append(ir)
-        #print(line)
-    except:
-        continue
-    if (len(hrValues) == 100):
-        #print("SPO2:", calc_hr_and_spo2(redValues, irValues))
-        (_, _, SPO2, SPO2_Valid) = calc_hr_and_spo2(redValues, irValues)
-        # print(irValues)
-        # print(redValues)
-        #print("HR:", analisisHR2(hrValues, miliValues, 3))
-        HR = analisisHR2(hrValues, miliValues, 3)
-        hrValues = hrValues[25:]
-        miliValues = miliValues[25:]
-        redValues = redValues[25:]
-        irValues = irValues[25:]
+# while (1):
+#     try:
+#         lineBytes = ser.readline();
+#         # lineBytes=s.recv(1024);
+#         line = lineBytes.decode("ascii")
+#         line = line.rstrip();  # HR:118;ML:1704
+#         medidas = line.split(";")  # ["HR:118", "ML:1704"]
+#         hr = int(medidas[0].split(":")[1])  # ["HR", "118"], toma el 118, lo convierte a int y lo guarda
+#         milis = int(medidas[1].split(":")[1])  # ["ML", "1704"]
+#         red = int(medidas[2].split(":")[1])
+#         ir = int(medidas[3].split(":")[1])
+#         hrValues.append(hr)
+#         miliValues.append(milis)
+#         redValues.append(red)
+#         irValues.append(ir)
+#         #print(line)
+#     except:
+#         continue
+#     if (len(hrValues) == 100):
+#         #print("SPO2:", calc_hr_and_spo2(redValues, irValues))
+#         (_, _, SPO2, SPO2_Valid) = calc_hr_and_spo2(redValues, irValues)
+#         # print(irValues)
+#         # print(redValues)
+#         #print("HR:", analisisHR2(hrValues, miliValues, 3))
+#         HR = analisisHR2(hrValues, miliValues, 3)
+#         hrValues = hrValues[25:]
+#         miliValues = miliValues[25:]
+#         redValues = redValues[25:]
+#         irValues = irValues[25:]
+
+
+
+try:
+    cnx = mysql.connector.connect(user='root', password='0412M4sql.', host='127.0.0.1', database='reto_sensor')
+    cursor = cnx.cursor()
+    introducirDatos(cnx, cursor)
+
+    cnx.commit()
+
+except mysql.connector.Error as err:
+
+  if err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
+    print("Something is wrong with your user name or password")
+  elif err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
+    print("Database does not exist")
+  else:
+    print("Error:")
+    print(err)
+
+finally:
+  if 'cnx' in locals() or 'cnx' in globals():
+    cnx.close()
